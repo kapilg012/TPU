@@ -797,7 +797,7 @@ class GameScreenState extends State<GameScreen> {
         for (int i = 0; i < listOfPlayers!.length; i++) {
           if (turn <= i && flag) {
             if (!listOfPlayers![i].packed) {
-              turn = i;
+              turn = i ;
               flag = false;
             }
           }
