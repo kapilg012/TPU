@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/CommonWidgets.dart';
+import 'package:teen_patti_utility/past_games_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
 import 'game_screen.dart';
@@ -22,7 +23,6 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     _box.clear();
   }
 
@@ -31,6 +31,15 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Add Players"),
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (ctx) {
+                  return PastGamesScreen();
+                }));
+              },
+              icon: Icon(Icons.receipt))
+        ],
       ),
       body: getMainlayout,
     );
@@ -68,8 +77,8 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
       );
 
   get getList {
-    listOfPlayersReverse=List.from(listOfPlayers.reversed);
-   return Expanded(
+    listOfPlayersReverse = List.from(listOfPlayers.reversed);
+    return Expanded(
       child: ListView.builder(
           itemCount: listOfPlayersReverse.length,
           itemBuilder: (ctx, index) {

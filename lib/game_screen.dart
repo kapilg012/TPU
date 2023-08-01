@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/CommonWidgets.dart';
 import 'package:teen_patti_utility/RecordScreen.dart';
+import 'package:teen_patti_utility/past_games_screen.dart';
 import 'package:teen_patti_utility/player_add_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
@@ -61,6 +62,15 @@ class GameScreenState extends State<GameScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Teen Patti "),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (ctx) {
+                    return PastGamesScreen();
+                  }));
+                },
+                icon: Icon(Icons.receipt))
+          ],
         ),
         backgroundColor: Colors.white,
         body: getMainlayout,
@@ -814,25 +824,5 @@ class GameScreenState extends State<GameScreen> {
         }
       }
     });
-  }
-
-  getDualWinnerButton() {
-    return InkWell(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-            color: Colors.orangeAccent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.black, width: 5)),
-        child: const Text(
-          "2-WINNER",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/CommonWidgets.dart';
+import 'package:teen_patti_utility/past_games_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
 class RecordScreen extends StatefulWidget {
@@ -13,14 +16,21 @@ class RecordScreen extends StatefulWidget {
 }
 
 class _RecordScreenState extends State<RecordScreen> {
+  final _boxx = Hive.box("past");
   final _box = Hive.box("RecordList");
   List _items = [];
   List<int> sum = [];
 
   @override
   void initState() {
+    /*_boxx.values.toString();
+    _boxx.clear();*/
     super.initState();
-    //_box.values.toString();
+  }
+
+  Future _addRow(Map<String, dynamic> row) async {
+    await _boxx.add(row);
+    log('Record Added' '${_boxx.values.toString()}');
   }
 
   @override
@@ -35,11 +45,35 @@ class _RecordScreenState extends State<RecordScreen> {
         sum[i] = sum[i] + element[widget.listOfPlayers[i].name] as int;
       }
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Record-Sheet"),
+    return WillPopScope(
+      onWillPop: () async {
+        await _boxx.clear();
+        Map<String, dynamic> map = {};
+
+        for (int i = 0; i < widget.listOfPlayers.length; i++) {
+          map["${widget.listOfPlayers[i].name}"] = sum[i];
+
+          print("${widget.listOfPlayers[i].name}...${sum[i]}");
+        }
+        map["Date"] = DateTime.now();
+        _addRow(map);
+        return (true);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Record-Sheet"),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (ctx) {
+                    return PastGamesScreen();
+                  }));
+                },
+                icon: Icon(Icons.receipt))
+          ],
+        ),
+        body: getMainlayout,
       ),
-      body: getMainlayout,
     );
   }
 
@@ -66,7 +100,7 @@ class _RecordScreenState extends State<RecordScreen> {
                 // height: 400,
                 width: double.infinity,
                 child: DataTable(
-                  headingRowHeight:0,
+                  headingRowHeight: 0,
                   dataRowHeight: 30,
                   headingRowColor: MaterialStateProperty.all(Colors.black12),
                   decoration: BoxDecoration(
@@ -168,7 +202,7 @@ class _RecordScreenState extends State<RecordScreen> {
 
   getRows() {
     List<DataRow> listOfRow = [];
-    for (int i=_items.length-1;i>=0;i--) {
+    for (int i = _items.length - 1; i >= 0; i--) {
       listOfRow.add(getDataRow(_items[i]));
     }
     return listOfRow;
