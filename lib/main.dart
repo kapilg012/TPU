@@ -49,7 +49,6 @@ class MyApp extends StatelessWidget {
         value = _boxx.values.first;
         await _box.add(value);
       }
-
       flag = false;
     }
   }
