@@ -47,7 +47,7 @@ class _AlertDialogueScreenState extends State<AlertDialogueScreen> {
               widget.isFromReset
                   ? "Do You Want to reset the Game ?"
                   : (widget.isFromTwoWinner)
-                      ? "Are you sure there are two winners in this game ?"
+                      ? "Are you sure there are multiple winners in this game ?"
                       : "Are you sure he is the winner ?",
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),

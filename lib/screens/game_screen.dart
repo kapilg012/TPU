@@ -668,10 +668,16 @@ class GameScreenState extends State<GameScreen> {
               PlayerAddScreen.listOfPlayerScore[turn] =
                   PlayerAddScreen.listOfPlayerScore[turn] + bigSum - total!;
 
+              var count=0;
+              listOfPlayers?.forEach((element) {
+                if(!element.packed){
+                  count++;
+                }
+              });
               Map<String, int> mapRow = {};
               listOfPlayers?.forEach((element) {
                 if (!element.packed) {
-                  mapRow[element.name] = (bigSum - twoTotal) ~/ 2;
+                  mapRow[element.name] = (bigSum - twoTotal) ~/ count;
                 } else {
                   mapRow[element.name] = element.chalTotal ?? 0;
                 }
@@ -680,7 +686,7 @@ class GameScreenState extends State<GameScreen> {
               _addRow(mapRow);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text("Two Winners Saved Successfully"),
+                  content: Text("Winners Saved Successfully"),
                 ),
               );
               setState(() {
