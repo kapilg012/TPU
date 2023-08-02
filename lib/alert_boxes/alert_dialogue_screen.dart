@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import 'CommonWidgets.dart';
+import '../common_widgets.dart';
 
 class AlertDialogDetails extends StatefulWidget {
   int index;

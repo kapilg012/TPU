@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
-import 'CommonWidgets.dart';
-import 'dimen.dart';
+import '../common_widgets.dart';
+import '../dimen.dart';
 
 class AlertDialogueScreen extends StatefulWidget {
   bool isFromReset;

@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:teen_patti_utility/player_add_screen.dart';
-import 'package:teen_patti_utility/player_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
+  DashboardScreenState createState() => DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class DashboardScreenState extends State<DashboardScreen> {
   TextEditingController totalController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dashboard"),
+        title: const Text("Dashboard"),
       ),
       body: getMainlayout,
     );
@@ -50,8 +49,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Container(
                   height: 30,
                   width: 100,
-                  decoration: BoxDecoration(color: Colors.orange),
-                  child: Center(
+                  decoration: const BoxDecoration(color: Colors.orange),
+                  child: const Center(
                     child: Text(
                       "Next",
                       style:

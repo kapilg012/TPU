@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:hive/hive.dart';
-import 'package:teen_patti_utility/CommonWidgets.dart';
+import 'package:teen_patti_utility/common_widgets.dart';
 import 'package:teen_patti_utility/past_games_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 

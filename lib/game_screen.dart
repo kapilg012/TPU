@@ -1,15 +1,14 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:teen_patti_utility/CommonWidgets.dart';
+import 'package:teen_patti_utility/common_widgets.dart';
 import 'package:teen_patti_utility/RecordScreen.dart';
 import 'package:teen_patti_utility/past_games_screen.dart';
 import 'package:teen_patti_utility/player_add_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
-import 'alert_dialogue.dart';
+import 'alert_boxes/alert_dialogue.dart';
 
 class GameScreen extends StatefulWidget {
   List<Player>? listOfPlayer;
@@ -30,7 +29,6 @@ class GameScreenState extends State<GameScreen> {
   var bigSum = 0;
   var packedPlayerCount = 0;
   final _box = Hive.box("RecordList");
-  List _records = [];
   var recordCount = 0;
 
   Future _addRow(Map<String, dynamic> row) async {
@@ -668,9 +666,9 @@ class GameScreenState extends State<GameScreen> {
               Map<String, int> mapRow = {};
               listOfPlayers?.forEach((element) {
                 if (!element.packed) {
-                  mapRow["${element.name}"] = (bigSum - twoTotal) ~/ 2;
+                  mapRow[element.name] = (bigSum - twoTotal) ~/ 2;
                 } else {
-                  mapRow["${element.name}"] = element.chalTotal ?? 0;
+                  mapRow[element.name] = element.chalTotal ?? 0;
                 }
               });
 
@@ -711,9 +709,9 @@ class GameScreenState extends State<GameScreen> {
                 Map<String, int> mapRow = {};
                 listOfPlayers?.forEach((element) {
                   if (listOfPlayers?.indexOf(element) == turn) {
-                    mapRow["${element.name}"] = bigSum - total;
+                    mapRow[element.name] = bigSum - total;
                   } else {
-                    mapRow["${element.name}"] = element.chalTotal ?? 0;
+                    mapRow[element.name] = element.chalTotal ?? 0;
                   }
                 });
 
