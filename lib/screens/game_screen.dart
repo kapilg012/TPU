@@ -3,12 +3,12 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/common_widgets.dart';
-import 'package:teen_patti_utility/RecordScreen.dart';
-import 'package:teen_patti_utility/past_games_screen.dart';
-import 'package:teen_patti_utility/player_add_screen.dart';
+import 'package:teen_patti_utility/screens/RecordScreen.dart';
+import 'package:teen_patti_utility/screens/past_games_screen.dart';
+import 'package:teen_patti_utility/screens/player_add_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
-import 'alert_boxes/alert_dialogue.dart';
+import '../alert_boxes/alert_dialogue.dart';
 
 class GameScreen extends StatefulWidget {
   List<Player>? listOfPlayer;
@@ -61,6 +61,11 @@ class GameScreenState extends State<GameScreen> {
         appBar: AppBar(
           title: const Text("Teen Patti "),
           actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.add)),
             IconButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (ctx) {

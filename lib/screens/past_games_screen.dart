@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
-import 'alert_boxes/alert_dialogue.dart';
-import 'alert_boxes/alert_dialogue_screen.dart';
-import 'alert_erase_previous_data.dart';
+import '../alert_boxes/alert_dialogue.dart';
+import '../alert_boxes/alert_dialogue_screen.dart';
+import '../alert_erase_previous_data.dart';
 
 class PastGamesScreen extends StatelessWidget {
   final _box = Hive.box("sheet");

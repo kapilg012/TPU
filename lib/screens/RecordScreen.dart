@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/common_widgets.dart';
-import 'package:teen_patti_utility/past_games_screen.dart';
+import 'package:teen_patti_utility/screens/past_games_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
 GlobalKey gkey = GlobalKey();
@@ -45,7 +45,7 @@ class _RecordScreenState extends State<RecordScreen> {
         if (i == sum.length) {
           sum.add(0);
         }
-        sum[i] = sum[i] + element[widget.listOfPlayers[i].name] as int;
+        sum[i] = sum[i] +( element[widget.listOfPlayers[i].name] ?? 0) as int;
       }
     }
     return WillPopScope(
@@ -256,10 +256,10 @@ class _RecordScreenState extends State<RecordScreen> {
     for (int i = 0; i < widget.listOfPlayers.length; i++) {
       listOfDataCell.add(DataCell(Center(
         child: Text(
-          "${e[widget.listOfPlayers[i].name]}",
+          "${e[widget.listOfPlayers[i].name] ??  "-"} " ,
           style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: (e[widget.listOfPlayers[i].name] < 0)
+              color: ((e[widget.listOfPlayers[i].name] ?? 0) < 0)
                   ? Colors.red
                   : Colors.green),
         ),

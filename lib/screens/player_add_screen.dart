@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/common_widgets.dart';
-import 'package:teen_patti_utility/past_games_screen.dart';
+import 'package:teen_patti_utility/screens/past_games_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
 
 import 'game_screen.dart';
@@ -144,7 +144,7 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
 
   get playButton => InkWell(
         onTap: () {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (ctx) {
+          Navigator.push(context, MaterialPageRoute(builder: (ctx) {
             return GameScreen(listOfPlayers);
           }));
         },
