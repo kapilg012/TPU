@@ -1,35 +1,41 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
+import 'package:teen_patti_utility/bloc/list_of_player_bloc.dart';
 import 'package:teen_patti_utility/common_widgets.dart';
+import 'package:teen_patti_utility/events/list_of_player_events.dart';
 import 'package:teen_patti_utility/screens/RecordScreen.dart';
 import 'package:teen_patti_utility/screens/past_games_screen.dart';
 import 'package:teen_patti_utility/screens/player_add_screen.dart';
-import 'package:teen_patti_utility/player_model.dart';
+import 'package:teen_patti_utility/states/player_model.dart';
 
 import '../alert_boxes/alert_dialogue.dart';
+import '../states/PlayerListState.dart';
 
 class GameScreen extends StatefulWidget {
-  List<Player>? listOfPlayer;
+  //List<PlayerState>? listOfPlayer;
 
-  GameScreen(this.listOfPlayer, {Key? key}) : super(key: key);
+  GameScreen();
 
   @override
   GameScreenState createState() => GameScreenState();
 }
 
 class GameScreenState extends State<GameScreen> {
-  List<Player>? listOfPlayers = [];
-  List<Player>? listOfPlayersTosend = [];
-  List<Player>? listOfLostPlayer = [];
-  List<List<Player>> listOfGames = [];
+  List<PlayerState>? listOfPlayers = [];
+  List<PlayerState>? listOfPlayersTosend = [];
+  List<PlayerState>? listOfLostPlayer = [];
+  List<List<PlayerState>> listOfGames = [];
   var chal = 2;
   var turn = 0;
   var bigSum = 0;
   var packedPlayerCount = 0;
   final _box = Hive.box("RecordList");
   var recordCount = 0;
+
+  ListOfPlayerBloc? blocInstance;
 
   Future _addRow(Map<String, dynamic> row) async {
     await _box.add(row);
@@ -45,71 +51,76 @@ class GameScreenState extends State<GameScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    listOfPlayers = widget.listOfPlayer;
+    //listOfPlayers = widget.listOfPlayer;
     bigSum = listOfPlayers!.length * 2;
   }
 
   @override
   Widget build(BuildContext context) {
-    //_box.clear();
-    listOfPlayersTosend = widget.listOfPlayer;
+    blocInstance = BlocProvider.of<ListOfPlayerBloc>(context);
+    //listOfPlayersTosend = widget.listOfPlayer;
     return WillPopScope(
       onWillPop: () {
         return Future.value(false);
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Teen Patti "),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: Icon(Icons.add)),
-            IconButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (ctx) {
-                    return PastGamesScreen();
-                  }));
-                },
-                icon: Icon(Icons.receipt))
-          ],
-        ),
-        backgroundColor: Colors.white,
-        body: getMainlayout,
-      ),
+      child: BlocBuilder(
+          bloc: blocInstance,
+          builder: (context, state) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text("Teen Patti "),
+                actions: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.add)),
+                  IconButton(
+                      onPressed: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (ctx) {
+                          return PastGamesScreen();
+                        }));
+                      },
+                      icon: const Icon(Icons.receipt))
+                ],
+              ),
+              backgroundColor: Colors.white,
+              body: getMainlayout(state),
+            );
+          }),
     );
   }
 
-  get getMainlayout => SafeArea(
+  getMainlayout(state) => SafeArea(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              getGrid,
-              getWinnerButton,
-              getChalBoard,
+              getGrid(state),
+              getWinnerButton(state),
+              getChalBoard(state),
             ],
           ),
         ),
       );
 
-  get getGrid => GridView.builder(
+  getGrid(PlayerListState state) => GridView.builder(
       padding: EdgeInsets.all(10),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.listOfPlayer?.length,
+      itemCount: state.listOfPlayerState?.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
           mainAxisExtent: 160),
       itemBuilder: (ctx, index) {
-        return getSingleItem(index);
+        return getSingleItem(index, state);
       });
 
-  getSingleItem(index) {
+  getSingleItem(index, PlayerListState state) {
     return InkWell(
       onTap: () {
         setState(() {
@@ -118,7 +129,9 @@ class GameScreenState extends State<GameScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-            color: (listOfPlayers![index].packed) ? Colors.red : Colors.green,
+            color: (state.listOfPlayerState![index].packed)
+                ? Colors.red
+                : Colors.green,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
                 width: 5, color: (turn == index) ? Colors.black : Colors.grey)),
@@ -135,18 +148,18 @@ class GameScreenState extends State<GameScreen> {
               ),
               child: Center(
                 child: Text(
-                  listOfPlayers![index].name,
+                  state.listOfPlayerState![index].name,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
             ),
             Text(
-              (listOfPlayers![index].packed) ? "Packed" : "Playing",
+              (state.listOfPlayerState![index].packed) ? "Packed" : "Playing",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             Text(
-              (listOfPlayers![index].packed) ? "" : "Chaal",
+              (state.listOfPlayerState![index].packed) ? "" : "Chaal",
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Container(
@@ -159,11 +172,11 @@ class GameScreenState extends State<GameScreen> {
                   border: Border.all(color: Colors.black, width: 5)),
               child: Center(
                 child: Text(
-                  "${listOfPlayers?[index].chalTotal}",
+                  "${state.listOfPlayerState?[index].chalTotal}",
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: (!listOfPlayers![index].packed)
+                      color: (!state.listOfPlayerState![index].packed)
                           ? Colors.green
                           : Colors.red),
                 ),
@@ -175,332 +188,205 @@ class GameScreenState extends State<GameScreen> {
     );
   }
 
-  get getChalBoard => Center(
-        child: Container(
-          //margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Text(
-                "${listOfPlayers?[turn].name}'s Turn",
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 2;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 2;
-                        }
-
-                        if (turn == (listOfPlayers!.length) - 1) {
-                          turn = 0;
-                          var flag = true;
-                          listOfPlayers?.forEach((element) {
-                            if (!element.packed && flag) {
-                              turn = listOfPlayers?.indexOf(element) ?? 0;
-                              flag = false;
-                            }
-                          });
-                        } else {
-                          var flag = true;
-                          turn = turn + 1;
-                          for (int i = 0; i < listOfPlayers!.length; i++) {
-                            if (turn <= i && flag) {
-                              if (!listOfPlayers![i].packed) {
-                                turn = i;
-                                flag = false;
-                              }
-                            }
-                          }
-                          if (flag) {
-                            turn = 0;
-                            var flag2 = true;
-                            listOfPlayers?.forEach((element) {
-                              if (!element.packed && flag2) {
-                                turn = listOfPlayers?.indexOf(element) ?? 0;
-                                flag2 = false;
-                              }
-                            });
-                          }
-                        }
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(2);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text(
-                        "2",
+  getChalBoard(PlayerListState state) {
+    var list = state.listOfPlayerState;
+    return Center(
+      child: Container(
+        //margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(
+              "${state.listOfPlayerState?[turn].name}'s Turn",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () => onPress(2, state),
+                  onLongPress: () => onLongPress(2, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text(
+                      "2",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(4, state),
+                  onLongPress: () => onLongPress(4, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("4",
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(
-                    width: 10,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(8, state),
+                  onLongPress: () => onLongPress(8, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("8",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 4;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 4;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(4);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("4",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(16, state),
+                  onLongPress: () => onLongPress(16, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("16",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(
-                    width: 10,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(32, state),
+                  onLongPress: () => onLongPress(32, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("32",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 8;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 8;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("8",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                    onLongPress: () {
-                      onLongPress(8);
-                    },
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () => onPress(64, state),
+                  onLongPress: () => onLongPress(64, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("64",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(
-                    width: 10,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(128, state),
+                  onLongPress: () => onLongPress(128, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("128",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 16;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 16;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(16);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("16",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(256, state),
+                  onLongPress: () => onLongPress(256, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("256",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(
-                    width: 10,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () => onPress(512, state),
+                  onLongPress: () => onLongPress(512, state),
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text("512",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 32;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 32;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(32);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("32",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      if (turn == (listOfPlayers!.length) - 1) {
+                        turn = 0;
+                      } else {
+                        turn = turn + 1;
+                      }
+                    });
+                  },
+                  child: const CircleAvatar(
+                    radius: 25,
+                    child: Text(""),
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 64;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 64;
-                        }
-
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(64);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("64",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 128;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 128;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(128);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("128",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 256;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 256;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(256);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("256",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (!listOfPlayers![turn].packed) {
-                          bigSum = bigSum + 512;
-                          listOfPlayers?[turn].chalTotal =
-                              (listOfPlayers?[turn].chalTotal ?? 0) + 512;
-                        }
-                        getTurnRight();
-                      });
-                    },
-                    onLongPress: () {
-                      onLongPress(512);
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text("512",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (turn == (listOfPlayers!.length) - 1) {
-                          turn = 0;
-                        } else {
-                          turn = turn + 1;
-                        }
-                      });
-                    },
-                    child: const CircleAvatar(
-                      radius: 25,
-                      child: Text(""),
-                    ),
-                  )
-                ],
-              ),
-              spacingVerticalNormal,
-              getPackButton(),
-              getTotal()
-            ],
-          ),
+                )
+              ],
+            ),
+            spacingVerticalNormal,
+            getPackButton(state),
+            getTotal()
+          ],
         ),
-      );
+      ),
+    );
+  }
 
-  getPackButton() {
+  getPackButton(PlayerListState state) {
+    var list = state.listOfPlayerState;
     return Row(
       children: [
         InkWell(
           onTap: () {
-            if (listOfPlayers![turn].packed) {
+            if (state.listOfPlayerState![turn].packed) {
               packedPlayerCount--;
               setState(() {
-                var chalTotal = listOfPlayers?[turn].chalTotal;
-                listOfPlayers?[turn].packed = false;
-                listOfPlayers?[turn].chalTotal = -chalTotal!;
+                var chalTotal = list?[turn].chalTotal;
+                list?[turn].packed = false;
+                list?[turn].chalTotal = -chalTotal!;
 
-                getTurnRight();
+                blocInstance?.add(addPlayer(list ?? []));
+                getTurnRight(state);
               });
               return;
             }
-            if (packedPlayerCount != listOfPlayers!.length - 1) {
+            if (packedPlayerCount != list!.length - 1) {
               packedPlayerCount++;
               setState(() {
-                var chalTotal = listOfPlayers?[turn].chalTotal;
-                listOfPlayers?[turn].packed = true;
-                listOfPlayers?[turn].chalTotal = -chalTotal!;
-
-                getTurnRight();
+                var chalTotal = list?[turn].chalTotal;
+                list?[turn].packed = true;
+                list?[turn].chalTotal = -chalTotal!;
+                blocInstance?.add(addPlayer(list ?? []));
+                getTurnRight(state);
               });
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -542,14 +428,14 @@ class GameScreenState extends State<GameScreen> {
             ).then((value) {
               if (value) {
                 packedPlayerCount = 0;
-                setState(() {
-                  for (int i = 0; i < listOfPlayers!.length; i++) {
-                    listOfPlayers?[i].chalTotal = 2;
-                    listOfPlayers?[i].packed = false;
-                    listOfPlayers?[i].blind = true;
-                  }
-                  bigSum = listOfPlayers!.length * 2;
-                });
+                var list = state.listOfPlayerState;
+
+                for (int i = 0; i < list!.length; i++) {
+                  list?[i].chalTotal = 2;
+                  list?[i].packed = false;
+                }
+                bigSum = list!.length * 2;
+                blocInstance?.add(addPlayer(list));
               }
             });
           },
@@ -577,7 +463,7 @@ class GameScreenState extends State<GameScreen> {
           onTap: () {
             if (recordCount != 0) {
               Navigator.push(context, MaterialPageRoute(builder: (ctx) {
-                return RecordScreen(listOfPlayers!);
+                return RecordScreen(state.listOfPlayerState ?? []);
               }));
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -611,22 +497,22 @@ class GameScreenState extends State<GameScreen> {
     );
   }
 
-  getTurnRight() {
-    if (turn == (listOfPlayers!.length) - 1) {
+  getTurnRight(PlayerListState state) {
+    if (turn == (state.listOfPlayerState!.length) - 1) {
       turn = 0;
       var flag = true;
       listOfPlayers?.forEach((element) {
         if (!element.packed && flag) {
-          turn = listOfPlayers?.indexOf(element) ?? 0;
+          turn = state.listOfPlayerState?.indexOf(element) ?? 0;
           flag = false;
         }
       });
     } else {
       var flag = true;
       turn = turn + 1;
-      for (int i = 0; i < listOfPlayers!.length; i++) {
+      for (int i = 0; i < state.listOfPlayerState!.length; i++) {
         if (turn <= i && flag) {
-          if (!listOfPlayers![i].packed) {
+          if (!state.listOfPlayerState![i].packed) {
             turn = i;
             flag = false;
           }
@@ -635,9 +521,9 @@ class GameScreenState extends State<GameScreen> {
       if (flag) {
         turn = 0;
         var flag2 = true;
-        listOfPlayers?.forEach((element) {
+        state.listOfPlayerState?.forEach((element) {
           if (!element.packed && flag2) {
-            turn = listOfPlayers?.indexOf(element) ?? 0;
+            turn = state.listOfPlayerState?.indexOf(element) ?? 0;
             flag2 = false;
           }
         });
@@ -645,39 +531,82 @@ class GameScreenState extends State<GameScreen> {
     }
   }
 
-  get getWinnerButton => InkWell(
-        onLongPress: () {
+  getWinnerButton(PlayerListState state) {
+    return InkWell(
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: Colors.transparent,
+            contentPadding: const EdgeInsets.only(right: 25, left: 25),
+            content: AlertDialogueScreen(listOfPlayersTosend, false, true),
+          ),
+        ).then((value) {
+          if (value) {
+            var list = state.listOfPlayerState;
+            packedPlayerCount = 0;
+            recordCount++;
+            num twoTotal = 0;
+            list?.forEach((element) {
+              if (!element.packed) {
+                twoTotal += element.chalTotal!;
+              }
+            });
+            var total = state.listOfPlayerState?[turn].chalTotal;
+            list?[turn].score = list[turn].score! + bigSum - total!;
+
+            var count = 0;
+            list?.forEach((element) {
+              if (!element.packed) {
+                count++;
+              }
+            });
+            Map<String, int> mapRow = {};
+            list?.forEach((element) {
+              if (!element.packed) {
+                mapRow[element.name] = (bigSum - twoTotal) ~/ count;
+              } else {
+                mapRow[element.name] = element.chalTotal ?? 0;
+              }
+            });
+
+            _addRow(mapRow);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Winners Saved Successfully"),
+              ),
+            );
+
+            for (int i = 0; i < list!.length; i++) {
+              list?[i].chalTotal = 2;
+              list?[i].packed = false;
+            }
+            bigSum = list!.length * 2;
+            blocInstance?.add(addPlayer(list));
+          }
+        });
+      },
+      onTap: () {
+        if (packedPlayerCount == (state.listOfPlayerState!.length - 1)) {
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
               backgroundColor: Colors.transparent,
               contentPadding: const EdgeInsets.only(right: 25, left: 25),
-              content: AlertDialogueScreen(listOfPlayersTosend, false, true),
+              content: AlertDialogueScreen(listOfPlayersTosend, false, false),
             ),
           ).then((value) {
+            var list = state.listOfPlayerState;
             if (value) {
               packedPlayerCount = 0;
               recordCount++;
-              var twoTotal = 0;
-              listOfPlayers?.forEach((element) {
-                if (!element.packed) {
-                  twoTotal += element.chalTotal!;
-                }
-              });
-              var total = listOfPlayers?[turn].chalTotal;
-              PlayerAddScreen.listOfPlayerScore[turn] =
-                  PlayerAddScreen.listOfPlayerScore[turn] + bigSum - total!;
+              var total = list?[turn].chalTotal;
+              list?[turn].score = list[turn].score! + bigSum - total!;
 
-              var count=0;
-              listOfPlayers?.forEach((element) {
-                if(!element.packed){
-                  count++;
-                }
-              });
               Map<String, int> mapRow = {};
-              listOfPlayers?.forEach((element) {
-                if (!element.packed) {
-                  mapRow[element.name] = (bigSum - twoTotal) ~/ count;
+              list?.forEach((element) {
+                if (list?.indexOf(element) == turn) {
+                  mapRow[element.name] = bigSum - total!;
                 } else {
                   mapRow[element.name] = element.chalTotal ?? 0;
                 }
@@ -686,92 +615,50 @@ class GameScreenState extends State<GameScreen> {
               _addRow(mapRow);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text("Winners Saved Successfully"),
+                  content: Text("Winner Saved Successfully"),
                 ),
               );
               setState(() {
-                for (int i = 0; i < listOfPlayers!.length; i++) {
-                  listOfPlayers?[i].chalTotal = 2;
-                  listOfPlayers?[i].packed = false;
-                  listOfPlayers?[i].blind = true;
+                for (int i = 0; i < list!.length; i++) {
+                  list?[i].chalTotal = 2;
+                  list?[i].packed = false;
                 }
-                bigSum = listOfPlayers!.length * 2;
+                bigSum = list!.length * 2;
               });
+              blocInstance?.add(addPlayer(list!));
             }
           });
-        },
-        onTap: () {
-          if (packedPlayerCount == (listOfPlayers!.length - 1)) {
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: Colors.transparent,
-                contentPadding: const EdgeInsets.only(right: 25, left: 25),
-                content: AlertDialogueScreen(listOfPlayersTosend, false, false),
-              ),
-            ).then((value) {
-              if (value) {
-                packedPlayerCount = 0;
-                recordCount++;
-                var total = listOfPlayers?[turn].chalTotal;
-                PlayerAddScreen.listOfPlayerScore[turn] =
-                    PlayerAddScreen.listOfPlayerScore[turn] + bigSum - total!;
-
-                Map<String, int> mapRow = {};
-                listOfPlayers?.forEach((element) {
-                  if (listOfPlayers?.indexOf(element) == turn) {
-                    mapRow[element.name] = bigSum - total;
-                  } else {
-                    mapRow[element.name] = element.chalTotal ?? 0;
-                  }
-                });
-
-                _addRow(mapRow);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Winner Saved Successfully"),
-                  ),
-                );
-                setState(() {
-                  for (int i = 0; i < listOfPlayers!.length; i++) {
-                    listOfPlayers?[i].chalTotal = 2;
-                    listOfPlayers?[i].packed = false;
-                    listOfPlayers?[i].blind = true;
-                  }
-                  bigSum = listOfPlayers!.length * 2;
-                });
-              }
-            });
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Bhai !! ऐसे केसे ???"),
-              ),
-            );
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              color: Colors.orangeAccent,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: (packedPlayerCount == (listOfPlayers!.length - 1))
-                      ? Colors.black
-                      : Colors.grey,
-                  width: 5)),
-          child: Text(
-            "WINNER",
-            style: TextStyle(
-              color: (packedPlayerCount == (listOfPlayers!.length - 1))
-                  ? Colors.black
-                  : Colors.grey,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Bhai !! ऐसे केसे ???"),
             ),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: Colors.orangeAccent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+                color: (packedPlayerCount == (state.listOfPlayerState!.length - 1))
+                    ? Colors.black
+                    : Colors.grey,
+                width: 5)),
+        child: Text(
+          "WINNER",
+          style: TextStyle(
+            color: (packedPlayerCount == (state.listOfPlayerState!.length - 1))
+                ? Colors.black
+                : Colors.grey,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
         ),
-      );
+      ),
+    );
+  }
 
   getTotal() {
     return Container(
@@ -793,29 +680,42 @@ class GameScreenState extends State<GameScreen> {
     );
   }
 
-  onLongPress(int num) {
+  onPress(int i, PlayerListState state) {
+    var list = state.listOfPlayerState;
     setState(() {
-      if (!listOfPlayers![turn].packed) {
-        bigSum = bigSum - num;
-        listOfPlayers?[turn].chalTotal =
-            (listOfPlayers?[turn].chalTotal ?? 0) - num;
+      if (!state.listOfPlayerState![turn].packed) {
+        bigSum = bigSum + i;
+        list?[turn].chalTotal =
+            (state.listOfPlayerState?[turn].chalTotal ?? 0) + i;
       }
 
-      if (turn == (listOfPlayers!.length) - 1) {
+      getTurnRight(state);
+    });
+  }
+
+  onLongPress(int num, PlayerListState state) {
+    var list = state.listOfPlayerState;
+    setState(() {
+      if (!list![turn].packed) {
+        bigSum = bigSum - num;
+        list?[turn].chalTotal = (list?[turn].chalTotal ?? 0) - num;
+      }
+
+      if (turn == (list!.length) - 1) {
         turn = 0;
         var flag = true;
-        listOfPlayers?.forEach((element) {
+        list?.forEach((element) {
           if (!element.packed && flag) {
-            turn = listOfPlayers?.indexOf(element) ?? 0;
+            turn = list?.indexOf(element) ?? 0;
             flag = false;
           }
         });
       } else {
         var flag = true;
         turn = turn + 1;
-        for (int i = 0; i < listOfPlayers!.length; i++) {
+        for (int i = 0; i < list!.length; i++) {
           if (turn <= i && flag) {
-            if (!listOfPlayers![i].packed) {
+            if (!list![i].packed) {
               turn = i;
               flag = false;
             }
@@ -824,14 +724,15 @@ class GameScreenState extends State<GameScreen> {
         if (flag) {
           turn = 0;
           var flag2 = true;
-          listOfPlayers?.forEach((element) {
+          list?.forEach((element) {
             if (!element.packed && flag2) {
-              turn = listOfPlayers?.indexOf(element) ?? 0;
+              turn = list?.indexOf(element) ?? 0;
               flag2 = false;
             }
           });
         }
       }
+      blocInstance?.add(addPlayer(list));
     });
   }
 }

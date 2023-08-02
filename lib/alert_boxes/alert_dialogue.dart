@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:teen_patti_utility/player_model.dart';
+import 'package:teen_patti_utility/states/player_model.dart';
 
 import '../common_widgets.dart';
 import '../dimen.dart';
 
 class AlertDialogueScreen extends StatefulWidget {
   bool isFromReset;
-  List<Player>? listOfPlayer;
+  List<PlayerState>? listOfPlayer;
   bool isFromTwoWinner;
 
   AlertDialogueScreen(

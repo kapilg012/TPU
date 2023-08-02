@@ -5,12 +5,12 @@ import 'package:flutter/rendering.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/common_widgets.dart';
 import 'package:teen_patti_utility/screens/past_games_screen.dart';
-import 'package:teen_patti_utility/player_model.dart';
+import 'package:teen_patti_utility/states/player_model.dart';
 
 GlobalKey gkey = GlobalKey();
 
 class RecordScreen extends StatefulWidget {
-  List<Player> listOfPlayers;
+  List<PlayerState> listOfPlayers;
 
   RecordScreen(this.listOfPlayers, {Key? key}) : super(key: key);
 

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/common_widgets.dart';
+import 'package:teen_patti_utility/events/list_of_player_events.dart';
 import 'package:teen_patti_utility/screens/past_games_screen.dart';
-import 'package:teen_patti_utility/player_model.dart';
+import 'package:teen_patti_utility/states/player_model.dart';
 
+import '../bloc/list_of_player_bloc.dart';
+import '../states/PlayerListState.dart';
 import 'game_screen.dart';
 
 class PlayerAddScreen extends StatefulWidget {
@@ -16,10 +20,11 @@ class PlayerAddScreen extends StatefulWidget {
 }
 
 class _PlayerAddScreenState extends State<PlayerAddScreen> {
-  List<Player> listOfPlayers = [];
-  List<Player> listOfPlayersReverse = [];
+  List<PlayerState> listOfPlayers = [];
+  List<PlayerState> listOfPlayersReverse = [];
   final _box = Hive.box("RecordList");
   TextEditingController controller = TextEditingController();
+  ListOfPlayerBloc? blocInstance;
 
   @override
   void initState() {
@@ -28,6 +33,7 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    blocInstance = BlocProvider.of<ListOfPlayerBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Add Players"),
@@ -77,36 +83,44 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
       );
 
   get getList {
-    listOfPlayersReverse = List.from(listOfPlayers.reversed);
-    return Expanded(
-      child: ListView.builder(
-          itemCount: listOfPlayersReverse.length,
-          itemBuilder: (ctx, index) {
-            return Container(
-              height: 50,
-              width: 100,
-              margin: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.blueAccent,
-              ),
-              child: Center(
-                child: Text(listOfPlayersReverse[index].name,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-            );
-          }),
+    return BlocBuilder(
+      bloc: blocInstance,
+      builder: (context, PlayerListState state) {
+        listOfPlayersReverse = state.listOfPlayerState ?? [];
+        return Expanded(
+          child: ListView.builder(
+              itemCount: listOfPlayersReverse.length,
+              itemBuilder: (ctx, index) {
+                return Container(
+                  height: 50,
+                  width: 100,
+                  margin: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.blueAccent,
+                  ),
+                  child: Center(
+                    child: Text(listOfPlayersReverse[index].name,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ),
+                );
+              }),
+        );
+      },
     );
   }
 
   get addButton => InkWell(
         onTap: () {
-          PlayerAddScreen.listOfPlayerScore.add(0);
-          listOfPlayers.add(Player(name: controller.text));
-          listOfPlayersReverse.add(Player(name: controller.text));
+          // PlayerAddScreen.listOfPlayerScore.add(0);
+          listOfPlayers.add(PlayerState(name: controller.text));
+          listOfPlayersReverse
+              .add(PlayerState(name: controller.text, score: 0, packed: false));
+          blocInstance?.add(addPlayer(listOfPlayersReverse));
+
           controller.text = "";
-          setState(() {});
+          //setState(() {});
         },
         child: Container(
           height: 40,
@@ -124,28 +138,10 @@ class _PlayerAddScreenState extends State<PlayerAddScreen> {
         ),
       );
 
-  get refreshButton => InkWell(
-        onTap: () {
-          setState(() {});
-        },
-        child: Container(
-          height: 40,
-          width: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.green,
-          ),
-          child: const Center(
-            child: Text("REFRESH",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      );
-
   get playButton => InkWell(
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (ctx) {
-            return GameScreen(listOfPlayers);
+            return GameScreen();
           }));
         },
         child: Container(

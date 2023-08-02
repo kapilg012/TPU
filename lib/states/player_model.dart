@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class Player {
+class PlayerState {
   final String name;
-  bool? blind;
+  num? score;
   int? chalTotal = 2;
   bool packed = false;
 
-  Player(
+  PlayerState(
       {required this.name,
-      this.blind,
+      this.score,
       this.chalTotal = 2,
       this.packed = false});
 }
