@@ -1,10 +1,13 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:hive/hive.dart';
 import 'package:teen_patti_utility/CommonWidgets.dart';
 import 'package:teen_patti_utility/past_games_screen.dart';
 import 'package:teen_patti_utility/player_model.dart';
+
+GlobalKey gkey = GlobalKey();
 
 class RecordScreen extends StatefulWidget {
   List<Player> listOfPlayers;
@@ -60,6 +63,7 @@ class _RecordScreenState extends State<RecordScreen> {
         return (true);
       },
       child: Scaffold(
+        key: gkey,
         appBar: AppBar(
           title: const Text("Record-Sheet"),
           actions: [
@@ -80,7 +84,7 @@ class _RecordScreenState extends State<RecordScreen> {
   get getMainlayout => SafeArea(
           child: Column(
         children: [
-          SizedBox(
+          /*SizedBox(
             width: double.infinity,
             child: DataTable(
               headingRowColor: MaterialStateProperty.all(Colors.black12),
@@ -92,25 +96,45 @@ class _RecordScreenState extends State<RecordScreen> {
               columns: getColumn(),
               rows: [],
             ),
-          ),
+          ),*/
           Expanded(
-            flex: (widget.listOfPlayers.length == 3) ? 2 : 1,
+            flex: (widget.listOfPlayers.length >= 3) ? 1 : 2,
             child: SingleChildScrollView(
-              child: SizedBox(
-                // height: 400,
-                width: double.infinity,
-                child: DataTable(
-                  headingRowHeight: 0,
-                  dataRowHeight: 30,
-                  headingRowColor: MaterialStateProperty.all(Colors.black12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 5),
-                  ),
-                  border: TableBorder.all(width: 2),
-                  columnSpacing: 12,
-                  columns: getEmptyColumn(),
-                  rows: getRows(),
-                ),
+              scrollDirection: Axis.horizontal,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: ((widget.listOfPlayers.length < 6))
+                    ? Container(
+                        width: MediaQuery.sizeOf(context).width,
+                        child: DataTable(
+                          headingRowHeight: 50,
+                          dataRowHeight: 30,
+                          headingRowColor:
+                              MaterialStateProperty.all(Colors.black12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 5),
+                          ),
+                          border: TableBorder.all(width: 2),
+                          columnSpacing: 5,
+                          columns: getColumn(),
+                          rows: getRows(),
+                        ),
+                      )
+                    : Container(
+                        child: DataTable(
+                          headingRowHeight: 50,
+                          dataRowHeight: 30,
+                          headingRowColor:
+                              MaterialStateProperty.all(Colors.black12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 5),
+                          ),
+                          border: TableBorder.all(width: 2),
+                          columnSpacing: 5,
+                          columns: getColumn(),
+                          rows: getRows(),
+                        ),
+                      ),
               ),
             ),
           ),
@@ -168,10 +192,17 @@ class _RecordScreenState extends State<RecordScreen> {
     for (var element in widget.listOfPlayers) {
       column.add(
         DataColumn(
-          label: Center(
-            child: Text(
-              element.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          label: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            //width: 50,
+            child: Center(
+              child: Text(
+                element.name,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontStyle: FontStyle.italic),
+              ),
             ),
           ),
         ),
@@ -185,13 +216,17 @@ class _RecordScreenState extends State<RecordScreen> {
     for (var element in widget.listOfPlayers) {
       column.add(
         DataColumn(
-          label: Center(
-            child: Text(
-              element.name,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.transparent),
+          label: Container(
+            //width: 35,
+            child: Center(
+              child: Text(
+                element.name,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: Colors.blue,
+                    overflow: TextOverflow.ellipsis),
+              ),
             ),
           ),
         ),
