@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
@@ -8,16 +7,13 @@ import 'package:teen_patti_utility/common_widgets.dart';
 import 'package:teen_patti_utility/events/list_of_player_events.dart';
 import 'package:teen_patti_utility/screens/RecordScreen.dart';
 import 'package:teen_patti_utility/screens/past_games_screen.dart';
-import 'package:teen_patti_utility/screens/player_add_screen.dart';
 import 'package:teen_patti_utility/states/player_model.dart';
 
 import '../alert_boxes/alert_dialogue.dart';
 import '../states/PlayerListState.dart';
 
 class GameScreen extends StatefulWidget {
-  //List<PlayerState>? listOfPlayer;
-
-  GameScreen();
+  const GameScreen({super.key});
 
   @override
   GameScreenState createState() => GameScreenState();
@@ -25,10 +21,6 @@ class GameScreen extends StatefulWidget {
 
 class GameScreenState extends State<GameScreen> {
   List<PlayerState>? listOfPlayers = [];
-  List<PlayerState>? listOfPlayersTosend = [];
-  List<PlayerState>? listOfLostPlayer = [];
-  List<List<PlayerState>> listOfGames = [];
-  var chal = 2;
   var turn = 0;
   var bigSum = 0;
   var packedPlayerCount = 0;
@@ -58,7 +50,6 @@ class GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     blocInstance = BlocProvider.of<ListOfPlayerBloc>(context);
-    //listOfPlayersTosend = widget.listOfPlayer;
     return WillPopScope(
       onWillPop: () {
         return Future.value(false);
@@ -338,7 +329,7 @@ class GameScreenState extends State<GameScreen> {
                 InkWell(
                   onTap: () {
                     setState(() {
-                      if (turn == (listOfPlayers!.length) - 1) {
+                      if (turn == (list!.length) - 1) {
                         turn = 0;
                       } else {
                         turn = turn + 1;
@@ -423,7 +414,7 @@ class GameScreenState extends State<GameScreen> {
               builder: (ctx) => AlertDialog(
                 backgroundColor: Colors.transparent,
                 contentPadding: const EdgeInsets.only(right: 25, left: 25),
-                content: AlertDialogueScreen(listOfPlayersTosend, true, false),
+                content: AlertDialogueScreen([], true, false),
               ),
             ).then((value) {
               if (value) {
@@ -539,7 +530,7 @@ class GameScreenState extends State<GameScreen> {
           builder: (ctx) => AlertDialog(
             backgroundColor: Colors.transparent,
             contentPadding: const EdgeInsets.only(right: 25, left: 25),
-            content: AlertDialogueScreen(listOfPlayersTosend, false, true),
+            content: AlertDialogueScreen([], false, true),
           ),
         ).then((value) {
           if (value) {
@@ -593,7 +584,7 @@ class GameScreenState extends State<GameScreen> {
             builder: (ctx) => AlertDialog(
               backgroundColor: Colors.transparent,
               contentPadding: const EdgeInsets.only(right: 25, left: 25),
-              content: AlertDialogueScreen(listOfPlayersTosend, false, false),
+              content: AlertDialogueScreen([], false, false),
             ),
           ).then((value) {
             var list = state.listOfPlayerState;
@@ -642,9 +633,10 @@ class GameScreenState extends State<GameScreen> {
             color: Colors.orangeAccent,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-                color: (packedPlayerCount == (state.listOfPlayerState!.length - 1))
-                    ? Colors.black
-                    : Colors.grey,
+                color:
+                    (packedPlayerCount == (state.listOfPlayerState!.length - 1))
+                        ? Colors.black
+                        : Colors.grey,
                 width: 5)),
         child: Text(
           "WINNER",
